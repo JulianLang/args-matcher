@@ -1,0 +1,16 @@
+# node modules
+**/node_modules
+**/dist
+**/*.js
+
+# dev
+**/notes
+**/playground.ts
+
+# testing
+**/.nyc_output
+**/coverage
+**/*.test.js
+
+# file system
+**/.DS_Store
