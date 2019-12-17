@@ -4,21 +4,20 @@ import { Func } from './func';
 
 export type MatchRule<T extends AnyFn = any, K extends {} = any> =
   | SetArgsMatchRule<T, K>
-  | DelegateArgsMatchRule<T, K>;
+  | CallArgsMatchRule<T>;
 
 export interface ArgsMatchRule {
   name?: string;
   match: (ArgMatcher | any)[];
 }
 
-export interface SetArgsMatchRule<T extends AnyFn, K extends {}> extends ArgsMatchRule {
-  // TODO: fix typings :(
+// TODO: langju: for some strange reasons, the unused T must remain, as it results in compiler not being able to pattern match
+export interface SetArgsMatchRule<T extends AnyFn = any, K extends {} = any> extends ArgsMatchRule {
   set: Func<[K], Partial<K>>;
   before?: Func<[K], void>;
   after?: Func<[K], void>;
 }
 
-export interface DelegateArgsMatchRule<T extends AnyFn, K extends {}> extends ArgsMatchRule {
-  // TODO: fix typings :(
+export interface CallArgsMatchRule<T extends AnyFn = AnyFn> extends ArgsMatchRule {
   call: Func<Parameters<T>, void>;
 }
