@@ -2,7 +2,7 @@ import { AnyFn } from './any-fn';
 import { ArgMatcher } from './arg-matcher';
 import { Func } from './func';
 
-export type MatchRule<T extends AnyFn, K extends {}> =
+export type MatchRule<T extends AnyFn = any, K extends {} = any> =
   | SetArgsMatchRule<T, K>
   | DelegateArgsMatchRule<T, K>;
 
