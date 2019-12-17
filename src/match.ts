@@ -1,6 +1,7 @@
 import { isPrimitive } from 'util';
-import { AnyFn, ArgumentValueSymbol, MatchRule, SetArgsMatchRule } from './types';
+import { AnyFn, ArgumentValueSymbol, MatchRule, SetterFnSymbol } from './types';
 import {
+  hasSymbol,
   isArgMatcher,
   isDefined,
   isSetArgMatchRule,
@@ -55,7 +56,10 @@ export function match<T extends AnyFn, K extends {} = any>(
         rule.before(currentArgs);
       }
 
-      updateArgs(fn, args, rule);
+      const argsObj = toArgsDictionary(fn, args);
+      const updatedArgsObj = rule.set(argsObj);
+      executeContextFns(updatedArgsObj);
+      updateArgs(updatedArgsObj);
 
       if (isDefined(rule.after)) {
         rule.after(currentArgs);
@@ -65,12 +69,22 @@ export function match<T extends AnyFn, K extends {} = any>(
     }
   }
 
-  function updateArgs(fn: Function, args: Parameters<T>, rule: SetArgsMatchRule<T, any>) {
-    const argsObj = toArgsDictionary(fn, args);
-    const result = rule.set(argsObj);
+  function executeContextFns(argsObj: any) {
+    for (const key of Object.keys(argsObj)) {
+      const value = argsObj[key];
+
+      if (hasSymbol(SetterFnSymbol, value)) {
+        argsObj[key] = value(key, currentArgs[key], argsObj);
+      }
+    }
+
+    console.log();
+  }
+
+  function updateArgs(updatedArgsObj: any) {
     currentArgs = {
       ...currentArgs,
-      ...result,
+      ...updatedArgsObj,
     };
     currentArgsArray = toArray(currentArgs) as Parameters<T>;
   }
