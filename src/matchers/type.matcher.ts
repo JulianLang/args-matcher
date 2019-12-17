@@ -1,8 +1,8 @@
 import { isPrimitive } from 'util';
-import { ArgMatcher, ArgMatcherSymbol, ArgumentValueSymbol } from '../types';
-import { createMatcher, hasSymbol, isDefined, setSymbol } from '../util';
+import { ArgMatcher, ArgumentValueSymbol } from '../types';
+import { createMatcher, hasSymbol, isDefined } from '../util';
 
-export const type = setSymbol(ArgMatcherSymbol, typeMatcher);
+export const type = createMatcher('TypeMatcher', typeMatcher);
 
 function typeMatcher(arg: any): ArgMatcher {
   if (!isDefined(arg) || !isPrimitive(arg) || hasSymbol(ArgumentValueSymbol, arg)) {

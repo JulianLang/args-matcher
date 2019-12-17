@@ -1,10 +1,10 @@
-import { ArgMatcher, ArgMatcherSymbol, ArgumentValueSymbol } from '../types';
-import { createMatcher, hasSymbol, isDefined, isPrimitive, setSymbol } from '../util';
+import { ArgMatcher } from '../types';
+import { createMatcher, isDefined } from '../util';
 
-export const optional = setSymbol(ArgMatcherSymbol, optionalMatcher);
+export const optional = createMatcher('OptionalMatcher', optionalMatcher);
 
 function optionalMatcher(arg: any): ArgMatcher {
-  if (!isDefined(arg) || isPrimitive(arg) || hasSymbol(ArgumentValueSymbol, arg)) {
+  if (arg === undefined) {
     throw new Error(`optional-Matcher expects another matcher as argument: optional(MatcherFn)`);
   }
 

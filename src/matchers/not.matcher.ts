@@ -1,7 +1,7 @@
-import { ArgMatcher, ArgMatcherSymbol, ArgumentValueSymbol } from '../types';
-import { createMatcher, hasSymbol, setSymbol } from '../util';
+import { ArgMatcher, ArgumentValueSymbol } from '../types';
+import { createMatcher, hasSymbol } from '../util';
 
-export const not = setSymbol(ArgMatcherSymbol, notMatcher);
+export const not = createMatcher('NotMatcher', notMatcher);
 
 function notMatcher(arg: any): ArgMatcher {
   if (hasSymbol(ArgumentValueSymbol, arg)) {
