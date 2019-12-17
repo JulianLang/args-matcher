@@ -1,7 +1,7 @@
 import { sanitizeParamName } from './sanitize-param-name';
 const fnArgs: any = require('function-arguments');
 
-export function toObject(fn: Function, args: any[]): any {
+export function toArgsDictionary(fn: Function, args: any[]): any {
   const params = fnArgs(fn);
   const result: any = {};
 

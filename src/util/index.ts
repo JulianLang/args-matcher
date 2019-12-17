@@ -6,5 +6,5 @@ export * from './is-primitive';
 export * from './is-set-arg-match.rule';
 export * from './sanitize-param-name';
 export * from './set-symbol';
+export * from './to-args-dictionary';
 export * from './to-array';
-export * from './to-object';

@@ -1,13 +1,20 @@
 import { isPrimitive } from 'util';
 import { AnyFn, ArgumentValueSymbol, MatchRule, SetArgsMatchRule } from './types';
-import { isArgMatcher, isDefined, isSetArgMatchRule, setSymbol, toArray, toObject } from './util';
+import {
+  isArgMatcher,
+  isDefined,
+  isSetArgMatchRule,
+  setSymbol,
+  toArgsDictionary,
+  toArray,
+} from './util';
 
 export function match<T extends AnyFn, K extends {} = any>(
   fn: Function,
   rules: MatchRule<T, K>[],
   ...args: Parameters<T>
 ) {
-  let currentArgs = toObject(fn, args);
+  let currentArgs = toArgsDictionary(fn, args);
   let currentArgsArray = args;
 
   for (const rule of rules) {
@@ -59,7 +66,7 @@ export function match<T extends AnyFn, K extends {} = any>(
   }
 
   function updateArgs(fn: Function, args: Parameters<T>, rule: SetArgsMatchRule<T, any>) {
-    const argsObj = toObject(fn, args);
+    const argsObj = toArgsDictionary(fn, args);
     const result = rule.set(argsObj);
     currentArgs = {
       ...currentArgs,
