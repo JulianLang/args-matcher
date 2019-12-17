@@ -6,6 +6,8 @@ export const when = (matcher: Func<[any?], boolean>, setValue: any) => {
     if (matcher(value)) {
       return setValue;
     }
+
+    return value;
   };
   setSymbol(SetterFnSymbol, whenFn);
 
