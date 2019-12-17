@@ -1,8 +1,7 @@
-import { ArgMatcher, ArgMatcherSymbol } from '../types';
-import { createMatcher, setSymbol } from '../util';
+import { createMatcher } from '../util';
 
-export const any = setSymbol(ArgMatcherSymbol, anyMatcher);
+export const any = createMatcher('AnyMatcher', anyMatcher);
 
-function anyMatcher(): ArgMatcher {
+function anyMatcher() {
   return createMatcher('AnyMatcher', () => true);
 }
