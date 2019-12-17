@@ -2,7 +2,7 @@
   "name": "args-matcher",
   "version": "0.0.1",
   "description": "Provides tools for pattern-matching function arguments.",
-  "main": "dist/src/index.js",
+  "main": "dist/src/public-api.js",
   "scripts": {
     "build": "npx rimraf ./dist && npx tsc -p .",
     "start": "ts-node ./playground.ts",
