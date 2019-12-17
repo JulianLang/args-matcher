@@ -1,5 +1,5 @@
 import { isPrimitive } from 'util';
-import { AnyFn, ArgumentValueSymbol, MatchRule, SetterFnSymbol } from './types';
+import { AnyFn, ArgumentSymbol, MatchRule, SetterFnSymbol } from './types';
 import {
   hasSymbol,
   isArgMatcher,
@@ -41,7 +41,7 @@ export function match<T extends AnyFn, K extends {} = any>(
   function tryMatch(matchExpr: any, arg: any): boolean {
     if (!isPrimitive(arg)) {
       // to prevent confusability between fns as argument, and fns of user.
-      setSymbol(ArgumentValueSymbol, arg);
+      setSymbol(ArgumentSymbol, arg);
     }
 
     const isMatcherFn = isArgMatcher(matchExpr);

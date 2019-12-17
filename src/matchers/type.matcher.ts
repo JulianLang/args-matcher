@@ -1,11 +1,11 @@
 import { isPrimitive } from 'util';
-import { ArgumentValueSymbol, TypeOfString } from '../types';
+import { ArgumentSymbol, TypeOfString } from '../types';
 import { createMatcher, hasSymbol, isDefined } from '../util';
 
 export const type = createMatcher('TypeMatcher', typeMatcher);
 
 function typeMatcher(arg: TypeOfString) {
-  if (!isDefined(arg) || !isPrimitive(arg) || hasSymbol(ArgumentValueSymbol, arg)) {
+  if (!isDefined(arg) || !isPrimitive(arg) || hasSymbol(ArgumentSymbol, arg)) {
     throw new Error(`type-Matcher expects a type string as argument: type('function')`);
   }
 

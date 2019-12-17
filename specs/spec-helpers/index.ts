@@ -1,4 +1,4 @@
-import { ArgMatcher, ArgMatcherSymbol, ArgumentValueSymbol } from '../../src';
+import { ArgMatcher, ArgMatcherSymbol, ArgumentSymbol } from '../../src';
 import { createMatcher, isDefined, setSymbol } from '../../src/util';
 
 export const is42Fn = (a: number) => a === 42;
@@ -7,7 +7,7 @@ export const is42Matcher = createMatcher('Is42', is42Fn);
 export function testThrowForArgumentCall(matcher: ArgMatcher) {
   it('should throw if called with ArgumentSymbol', () => {
     // arrange, act, assert
-    expect(() => matcher({ [ArgumentValueSymbol]: true })).toThrow();
+    expect(() => matcher({ [ArgumentSymbol]: true })).toThrow();
   });
 }
 
