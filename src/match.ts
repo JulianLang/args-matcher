@@ -77,8 +77,6 @@ export function match<T extends AnyFn, K extends {} = any>(
         argsObj[key] = value(key, currentArgs[key], argsObj);
       }
     }
-
-    console.log();
   }
 
   function updateArgs(updatedArgsObj: any) {
