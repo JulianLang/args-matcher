@@ -58,7 +58,7 @@ export function match<T extends AnyFn, K extends {} = any>(
 
       const argsObj = toArgsDictionary(fn, args);
       const updatedArgsObj = rule.set(argsObj);
-      executeContextFns(updatedArgsObj);
+      execSetterFns(updatedArgsObj);
       updateArgs(updatedArgsObj);
 
       if (isDefined(rule.after)) {
@@ -69,7 +69,7 @@ export function match<T extends AnyFn, K extends {} = any>(
     }
   }
 
-  function executeContextFns(argsObj: any) {
+  function execSetterFns(argsObj: any) {
     for (const key of Object.keys(argsObj)) {
       const value = argsObj[key];
 
