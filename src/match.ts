@@ -1,6 +1,6 @@
 import { isPrimitive } from 'util';
 import { AnyFn, ArgumentValueSymbol, MatchRule, SetArgsMatchRule } from './types';
-import { isArgMatcher, isDefined, isSetMatchRule, setSymbol, toArray, toObject } from './util';
+import { isArgMatcher, isDefined, isSetArgMatchRule, setSymbol, toArray, toObject } from './util';
 
 export function match<T extends AnyFn, K extends {} = any>(
   fn: Function,
@@ -43,7 +43,7 @@ export function match<T extends AnyFn, K extends {} = any>(
   }
 
   function applyRule(rule: MatchRule<T, any>, fn: Function, args: Parameters<T>) {
-    if (isSetMatchRule(rule)) {
+    if (isSetArgMatchRule(rule)) {
       if (isDefined(rule.before)) {
         rule.before(currentArgs);
       }
