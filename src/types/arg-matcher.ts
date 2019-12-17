@@ -1,6 +1,7 @@
+import { Func } from './func';
 import { ArgMatcherSymbol } from './symbols';
 
 export interface ArgMatcher {
   [ArgMatcherSymbol]: string;
-  (value?: any): boolean;
+  <T>(value?: T): T | Func<[any?], T>;
 }
