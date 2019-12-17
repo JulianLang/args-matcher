@@ -1,8 +1,6 @@
 import { isPrimitive } from 'util';
 import { AnyFn, ArgumentValueSymbol, MatchRule, SetArgsMatchRule } from './types';
-import { isArgMatcher, isDefined, isSetMatchRule, setSymbol } from './util';
-
-const fnArgs: any = require('function-arguments');
+import { isArgMatcher, isDefined, isSetMatchRule, setSymbol, toArray, toObject } from './util';
 
 export function match<T extends AnyFn, K extends {} = any>(
   fn: Function,
@@ -69,26 +67,4 @@ export function match<T extends AnyFn, K extends {} = any>(
     };
     currentArgsArray = toArray(currentArgs) as Parameters<T>;
   }
-}
-
-function toArray(obj: any): any[] {
-  return Object.keys(obj).map(k => obj[k]);
-}
-
-function toObject(fn: Function, args: any[]): any {
-  const params = fnArgs(fn);
-  const result: any = {};
-
-  for (let i = 0; i < params.length; i++) {
-    const param = sanitizeParamName(params[i]);
-    result[param] = args[i];
-  }
-
-  return result;
-}
-
-function sanitizeParamName(name: string): string {
-  name = name.replace('...', '');
-
-  return name;
 }

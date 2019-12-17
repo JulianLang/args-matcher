@@ -4,4 +4,7 @@ export * from './is-arg-matcher';
 export * from './is-defined';
 export * from './is-primitive';
 export * from './is-set-match.rule';
+export * from './sanitize-param-name';
 export * from './set-symbol';
+export * from './to-array';
+export * from './to-object';
