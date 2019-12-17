@@ -19,23 +19,25 @@ export function match<T extends AnyFn, K extends {} = any>(
   let currentArgsArray = args;
 
   for (const rule of rules) {
-    tryMatchRule(rule, fn, currentArgsArray);
+    if (tryMatchRule(rule, fn, currentArgsArray)) {
+      applyRule(rule, fn, args);
+    }
   }
 
   return currentArgs;
 
-  function tryMatchRule(rule: MatchRule<T, any>, fn: Function, args: Parameters<T>): void {
+  function tryMatchRule(rule: MatchRule<T, any>, fn: Function, args: Parameters<T>): boolean {
     for (let i = 0; i < rule.match.length; i++) {
       const matchExpr = rule.match[i];
       const arg = args[i];
 
       // early cancel rule match
       if (!tryMatch(matchExpr, arg)) {
-        return;
+        return false;
       }
     }
 
-    applyRule(rule, fn, args);
+    return true;
   }
 
   function tryMatch(matchExpr: any, arg: any): boolean {
