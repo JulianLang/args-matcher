@@ -8,6 +8,7 @@ export type MatchRule<T extends AnyFn = any, K extends {} = any> =
 
 export interface ArgsMatchRule {
   name?: string;
+  exactMatch?: boolean;
   match: (ArgMatcher | any)[];
 }
 

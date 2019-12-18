@@ -85,6 +85,33 @@ describe('match', () => {
     expect(rules[1].match[1]).not.toHaveBeenCalled();
   });
 
+  it('should check a rule`s match length if exactMatch is set to true', () => {
+    // arrange
+    const spy1 = spyMatcher(true, '1');
+    const spy2 = spyMatcher(false, '2');
+    const rules: MatchRule[] = [
+      {
+        // match lenght = 1, but args length are 2. Due to exactMatch, it should not be called.
+        match: [spy1],
+        exactMatch: true,
+        call: () => {},
+      },
+      {
+        match: [spy2],
+        exactMatch: false,
+        set: () => ({}),
+      },
+    ];
+
+    // act
+    const twoArguments = [42, 4711];
+    match(fn, rules, ...twoArguments);
+
+    // assert
+    expect(spy1).not.toHaveBeenCalled();
+    expect(spy2).toHaveBeenCalledTimes(1);
+  });
+
   it('should compare constant values in match with given arg', () => {
     // arrange
     const rules: MatchRule[] = [

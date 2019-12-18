@@ -27,6 +27,10 @@ export function match<T extends AnyFn, K extends {} = any>(
   return currentArgs;
 
   function tryMatchRule(rule: MatchRule<T, any>, fn: Function, args: Parameters<T>): boolean {
+    if (rule.exactMatch && rule.match.length !== args.length) {
+      return false;
+    }
+
     for (let i = 0; i < rule.match.length; i++) {
       const matchExpr = rule.match[i];
       const arg = args[i];
