@@ -1,9 +1,9 @@
-import { isPrimitive } from 'util';
-import { AnyFn, ArgumentSymbol, MatchRule, MatchRules, SetterFnSymbol } from './types';
+import { AnyFn, AnyObject, ArgumentSymbol, MatchRule, MatchRules, SetterFnSymbol } from './types';
 import {
   hasSymbol,
   isArgMatcher,
   isDefined,
+  isPrimitive,
   isSetterFn,
   setSymbol,
   toArgsDictionary,
@@ -12,7 +12,8 @@ import {
 export const globalRuleIdentifier = '*';
 
 export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args: Parameters<T>) {
-  let currentArgs = toArgsDictionary(fn, args);
+  let originalArgs = toArgsDictionary(fn, args);
+  let currentArgs = { ...originalArgs };
 
   for (const argName of Object.keys(currentArgs)) {
     const argValue = currentArgs[argName];
@@ -23,7 +24,14 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
     }
   }
 
-  return currentArgs;
+  return cleanUpArgs(currentArgs);
+
+  function getArgRules(rules: MatchRules, argName: string): MatchRule[] {
+    const globalRules: MatchRule[] = rules[globalRuleIdentifier] ? rules[globalRuleIdentifier] : [];
+    const argRules: MatchRule[] = rules[argName] ? rules[argName] : [];
+
+    return argRules.concat(globalRules);
+  }
 
   function tryMatchArg(argName: string, argValue: any, rules: MatchRules): MatchRule[] {
     const matches: MatchRule[] = [];
@@ -40,13 +48,6 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
     }
 
     return matches;
-  }
-
-  function getArgRules(rules: MatchRules, argName: string): MatchRule[] {
-    const globalRules: MatchRule[] = rules[globalRuleIdentifier] ? rules[globalRuleIdentifier] : [];
-    const argRules: MatchRule[] = rules[argName] ? rules[argName] : [];
-
-    return argRules.concat(globalRules);
   }
 
   function tryMatchRule(rule: MatchRule, argValue: any): boolean {
@@ -77,8 +78,8 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
   function applyRule(argName: string, rules: MatchRule[]) {
     for (const rule of rules) {
       if (isSetterFn(rule.set)) {
-        const argValue = currentArgs[argName];
-        currentArgs[argName] = rule.set(currentArgs, argName, argValue);
+        const argValue = originalArgs[argName];
+        currentArgs[argName] = rule.set({ ...currentArgs }, argName, argValue);
       } else {
         // e.g.: rule.set: 42
         currentArgs[argName] = rule.set;
@@ -88,19 +89,29 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
     }
   }
 
-  function execSetterFns(argsObj: any) {
-    if (!isDefined(argsObj)) {
-      throw new Error(
-        `Argument's context object is "${argsObj}". Did you use a custom setter function, which does not return the passed in context object?`,
-      );
+  function cleanUpArgs(argsObj: AnyObject): AnyObject {
+    for (const property of Object.keys(argsObj)) {
+      if (isSetterFn(argsObj[property])) {
+        argsObj[property] = undefined;
+      }
     }
 
-    for (const key of Object.keys(argsObj)) {
-      const value = argsObj[key];
+    return argsObj;
+  }
+}
 
-      if (hasSymbol(SetterFnSymbol, value)) {
-        argsObj[key] = value(argsObj, key, currentArgs[key]);
-      }
+function execSetterFns(currentArgs: AnyObject) {
+  if (!isDefined(currentArgs)) {
+    throw new Error(
+      `Argument's context object is "${currentArgs}". Did you use a custom setter function, which does not return the passed in context object?`,
+    );
+  }
+
+  for (const property of Object.keys(currentArgs)) {
+    const value = currentArgs[property];
+
+    if (hasSymbol(SetterFnSymbol, value)) {
+      currentArgs[property] = value(currentArgs, property, currentArgs[property]);
     }
   }
 }
