@@ -1,10 +1,13 @@
+import { AnyObject } from './any-object';
 import { SetterFnSymbol } from './symbols';
 
-export interface SetterFnWrapper<T = any> {
-  (...params: any[]): SetterFn<T>;
+export type SetterLikeFn<T = any> = (ctx: Readonly<AnyObject>, name: string, value: T) => any;
+
+export interface SetterFnWrapper<T extends any[]> {
+  (...params: T): SetterFn;
 }
 
 export interface SetterFn<T = any> {
   [SetterFnSymbol]: true;
-  (ctx: any, name: string, value: T): any;
+  (ctx: Readonly<AnyObject>, name: Readonly<string>, value: Readonly<T>): any;
 }

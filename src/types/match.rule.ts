@@ -5,5 +5,5 @@ export type MatchExpr = ArgMatcher | any;
 export interface MatchRule {
   name?: string;
   when: MatchExpr[] | MatchExpr;
-  set: SetterFnWrapper | SetterFn | any;
+  set: SetterFnWrapper<any[]> | SetterFn | any;
 }

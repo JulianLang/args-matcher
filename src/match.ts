@@ -78,7 +78,7 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
     for (const rule of rules) {
       if (isSetterFn(rule.set)) {
         const argValue = currentArgs[argName];
-        currentArgs = rule.set(currentArgs, argName, argValue);
+        currentArgs[argName] = rule.set(currentArgs, argName, argValue);
       } else {
         // e.g.: rule.set: 42
         currentArgs[argName] = rule.set;
