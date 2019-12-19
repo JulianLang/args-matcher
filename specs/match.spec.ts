@@ -1,132 +1,161 @@
 import {
   ArgumentSymbol,
-  CallArgsMatchRule,
   Func,
   hasSymbol,
   match,
-  MatchRule,
-  SetArgsMatchRule,
+  MatchRules,
   setSymbol,
   SetterFnSymbol,
 } from '../src';
 import { is42Matcher, spy, spyMatcher } from './spec-helpers';
 
 describe('match', () => {
-  const fn = (a: number) => {};
+  const defaultTestFn = (a: number) => {};
 
-  it('should always call all rules', () => {
+  it('should call setter fns and set "normal" fns', () => {
     // arrange
-    const rules: MatchRule[] = [
-      {
-        match: [is42Matcher],
-        call: jasmine.createSpy(),
-      },
-      {
-        match: [is42Matcher],
-        set: jasmine.createSpy().and.returnValue({}),
-      },
-    ];
+    const testFn = (a: number | Function) => {};
+
+    const setter = setSymbol(SetterFnSymbol, spy().and.returnValue({ a: 4711 }));
+    const normalFn = () => {};
+
+    const ruleWithSetter: MatchRules = {
+      a: [
+        {
+          when: [42],
+          // sets "a" to 4711
+          set: setter,
+        },
+      ],
+    };
+    const ruleWithNormalFn: MatchRules = {
+      a: [
+        {
+          when: [42],
+          // sets "a" to normalFn
+          set: normalFn,
+        },
+      ],
+    };
 
     // act
-    match(fn, rules, 42);
+    const result1 = match(testFn, ruleWithSetter, 42);
+    const result2 = match(testFn, ruleWithNormalFn, 42);
 
     // assert
-    expect((rules[0] as CallArgsMatchRule).call).toHaveBeenCalledTimes(1);
-    expect((rules[1] as SetArgsMatchRule).set).toHaveBeenCalledTimes(1);
+    expect(result1.a).toBe(4711);
+    expect(result2.a).toBe(normalFn);
   });
 
-  it('should call matchers of all rules', () => {
+  it('should always call all rules for a property', () => {
     // arrange
-    const rules: MatchRule[] = [
-      {
-        match: [spyMatcher(true, '1.1'), spyMatcher(false, '1.2')],
-        call: () => {},
-      },
-      {
-        match: [spyMatcher(true, '2.1'), spyMatcher(false, '2.2')],
-        set: () => ({}),
-      },
-    ];
+    const setter1 = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
+    const setter2 = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
+    const rules: MatchRules = {
+      a: [
+        {
+          when: [is42Matcher],
+          set: setter1,
+        },
+        {
+          when: [is42Matcher],
+          set: setter2,
+        },
+      ],
+    };
 
     // act
-    match(fn, rules, 42);
+    match(defaultTestFn, rules, 42);
 
     // assert
-    expect(rules[0].match[0]).toHaveBeenCalledTimes(1);
-    expect(rules[0].match[1]).toHaveBeenCalledTimes(1);
-    expect(rules[1].match[0]).toHaveBeenCalledTimes(1);
-    expect(rules[1].match[1]).toHaveBeenCalledTimes(1);
+    expect(rules.a[0].set).toHaveBeenCalledTimes(1);
+    expect(rules.a[1].set).toHaveBeenCalledTimes(1);
   });
 
-  it('should jump out of non-matching rules when the first rule`s matcher fails', () => {
+  it('should call all rules even for args that were not given', () => {
     // arrange
-    const rules: MatchRule[] = [
-      {
-        match: [spyMatcher(true, '1.1'), spyMatcher(false, '1.2')],
-        call: () => {},
-      },
-      {
-        match: [spyMatcher(false, '2.1'), spyMatcher(true, '2.2')],
-        set: () => ({}),
-      },
-    ];
+    const testFn = (a: any, b?: any) => {};
+    const matcher1 = spyMatcher(false, '1');
+    const matcher2 = spyMatcher(false, '2');
+    const matcher3 = spyMatcher(false, '3');
+    const matcher4 = spyMatcher(true, '4');
+    const rules: MatchRules = {
+      a: [
+        {
+          when: [matcher1, matcher2],
+          set: null,
+        },
+      ],
+      b: [
+        {
+          when: [matcher3, matcher4],
+          set: null,
+        },
+      ],
+    };
 
     // act
-    match(fn, rules, 42);
+    match(testFn, rules, 42);
+
+    // assert
+    expect(matcher1).toHaveBeenCalledTimes(1);
+    expect(matcher2).toHaveBeenCalledTimes(1);
+    expect(matcher3).toHaveBeenCalledTimes(1);
+    expect(matcher4).toHaveBeenCalledTimes(1);
+  });
+
+  it('should jump out early of rules as soon the first matcher matches', () => {
+    // arrange
+    const matcher1 = spyMatcher(false, '1');
+    const matcher2 = spyMatcher(false, '2');
+    const matcher3 = spyMatcher(true, '3');
+    const matcher4 = spyMatcher(false, '4');
+
+    const rules: MatchRules = {
+      '*': [
+        {
+          when: [matcher1, matcher2],
+          set: null,
+        },
+        {
+          when: [matcher3, matcher4],
+          set: null,
+        },
+      ],
+    };
+
+    // act
+    match(defaultTestFn, rules, 42);
 
     // assert: 1.x
-    expect(rules[0].match[0]).toHaveBeenCalledTimes(1);
-    // should be called as 1.1 succeeded.
-    expect(rules[0].match[1]).toHaveBeenCalledTimes(1);
+    expect(matcher1).toHaveBeenCalledTimes(1);
+    // should be called as 1.1 didn't failed.
+    expect(matcher2).toHaveBeenCalledTimes(1);
 
     // assert: 2.x
-    expect(rules[1].match[0]).toHaveBeenCalledTimes(1);
-    // should not be called since 2.1 failed.
-    expect(rules[1].match[1]).not.toHaveBeenCalled();
-  });
-
-  it('should check a rule`s match length if exactMatch is set to true', () => {
-    // arrange
-    const spy1 = spyMatcher(true, '1');
-    const spy2 = spyMatcher(false, '2');
-    const rules: MatchRule[] = [
-      {
-        // match lenght = 1, but args length are 2. Due to exactMatch, it should not be called.
-        match: [spy1],
-        exactMatch: true,
-        call: () => {},
-      },
-      {
-        match: [spy2],
-        exactMatch: false,
-        set: () => ({}),
-      },
-    ];
-
-    // act
-    const twoArguments = [42, 4711];
-    match(fn, rules, ...twoArguments);
-
-    // assert
-    expect(spy1).not.toHaveBeenCalled();
-    expect(spy2).toHaveBeenCalledTimes(1);
+    expect(matcher3).toHaveBeenCalledTimes(1);
+    // should not be called since 2.1 already matched.
+    expect(matcher4).not.toHaveBeenCalled();
   });
 
   it('should compare constant values in match with given arg', () => {
     // arrange
-    const rules: MatchRule[] = [
-      {
-        // comapare the given arg with 42:
-        match: [42],
-        call: spy(),
-      },
-    ];
+    const setterFn = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
+    const rules: MatchRules = {
+      '*': [
+        {
+          // comapare the given arg with 42:
+          when: [42],
+          set: setterFn,
+        },
+      ],
+    };
 
     // act
-    match(fn, rules, 42);
+    match(defaultTestFn, rules, 42);
 
     // assert
-    expect((rules[0] as CallArgsMatchRule).call).toHaveBeenCalledTimes(1);
+    expect(setterFn).toHaveBeenCalledTimes(1);
   });
 
   it('should mark passed arguments with ArgumentSymbol, if they can carry symbols', () => {
@@ -137,12 +166,14 @@ describe('match', () => {
 
     // arrange
     const fn = (a: Func<[], void>, b: {}, c: any[]) => {};
-    const rules: MatchRule[] = [
-      {
-        match: [matcher, matcher, matcher],
-        call: () => {},
-      },
-    ];
+    const rules: MatchRules = {
+      '*': [
+        {
+          when: [matcher, matcher, matcher],
+          set: null,
+        },
+      ],
+    };
 
     // act
     match(fn, rules, () => {}, {}, [1, 2, 3]);
@@ -151,42 +182,36 @@ describe('match', () => {
     expect(matcher).toHaveBeenCalledTimes(3);
   });
 
-  it('should run before and after hooks, if it is a SetArgsMatchRule and the hooks are set', () => {
-    // arrange
-    const rules: MatchRule[] = [
-      {
-        match: [is42Matcher],
-        before: spy('before'),
-        set: () => ({}),
-        after: spy('after'),
-      },
-    ];
-
-    // act
-    match(fn, rules, 42);
-
-    // assert
-    const setRule = rules[0] as SetArgsMatchRule;
-    expect(setRule.before).toHaveBeenCalledTimes(1);
-    expect(setRule.after).toHaveBeenCalledTimes(1);
-  });
-
-  it('should execute setter fns, which return value changes the result-args-output', () => {
+  it('should execute setter fns, which return a ctx object that might be manipulated', () => {
     // arrange
     const setterReturn = 4711;
-    const setter = setSymbol(SetterFnSymbol, spy().and.returnValue(setterReturn));
-    const rules: MatchRule[] = [
-      {
-        match: [is42Matcher],
-        set: () => ({ a: setter }),
-      },
-    ];
+    const setter = setSymbol(SetterFnSymbol, spy().and.returnValue({ a: setterReturn }));
+    const rules: MatchRules = {
+      '*': [
+        {
+          when: [is42Matcher],
+          set: setter,
+        },
+      ],
+    };
 
     // act
-    const result = match(fn, rules, 42);
+    const result = match(defaultTestFn, rules, 42);
 
     // assert
-    expect(setter).toHaveBeenCalledWith('a', 42, jasmine.any(Object));
+    expect(setter).toHaveBeenCalledWith(jasmine.any(Object), 'a', 42);
     expect(result).toEqual({ a: setterReturn });
+  });
+
+  it('should throw if a setter function did return null or undefined as context object', () => {
+    // error, since it returns undefined.
+    const matchValue = 42;
+    const setterFn = setSymbol(SetterFnSymbol, () => undefined);
+    const rules: MatchRules = { '*': [{ when: [matchValue], set: setterFn }] };
+
+    // act, assert
+    expect(() => match(defaultTestFn, rules, matchValue)).toThrowMatching((err: Error) =>
+      err.message.includes('context'),
+    );
   });
 });
