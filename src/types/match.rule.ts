@@ -4,7 +4,8 @@ import { SetterFn, SetterFnWrapper } from './setter.fn';
 
 export type MatchExpr = ArgMatcher | any;
 
-export type MatchRule = SetMatchRule | AndMatchRule;
+export type MatchRule = ParentMatchRule | SubMatchRule;
+export type ParentMatchRule = SetMatchRule | AndMatchRule;
 
 interface MatchRuleBase {
   name?: string;
