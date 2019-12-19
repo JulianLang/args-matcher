@@ -9,13 +9,13 @@ describe('when', () => {
     expect(typeof result).toBe('function');
   });
 
-  it('should only return newValue if matcher matches', () => {
+  it('should only manipulate the ctx object if it matches', () => {
     // arrange, act
     const succeed = when(() => true, 42);
     const dontSucceed = when(() => false, 42);
 
     // assert
-    expect(succeed('prop', null, {})).toBe(42);
-    expect(dontSucceed('prop', null, {})).toBe(null);
+    expect(succeed({}, 'prop', null)).toEqual({ prop: 42 });
+    expect(dontSucceed({}, 'prop', null)).toEqual({});
   });
 });
