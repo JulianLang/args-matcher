@@ -1,7 +1,7 @@
 import { SetterFn, SetterFnWrapper, SetterLikeFn } from '../types';
 import { createSetterFn, isSetterFn } from '../util';
 
-export const set: SetterFnWrapper<[SetterLikeFn]> = (setFn: SetterLikeFn) => {
+export const value: SetterFnWrapper<[SetterLikeFn]> = (setFn: SetterLikeFn) => {
   return createSetterFn((ctx: any, name: string, value: any) => {
     let currentValue: SetterFn | any = setFn;
 
