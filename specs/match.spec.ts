@@ -1,4 +1,4 @@
-import { ArgumentSymbol, createSetterFn, Func, hasSymbol, match, MatchRules } from '../src';
+import { any, ArgumentSymbol, createSetterFn, Func, hasSymbol, match, MatchRules } from '../src';
 import { is42Matcher, spy, spyMatcher } from './spec-helpers';
 
 describe('match', () => {
@@ -200,5 +200,28 @@ describe('match', () => {
     expect(setter).toHaveBeenCalledWith(jasmine.any(Object), 'a', 42);
     expect(result.shouldNotWork).toBeUndefined();
     expect(result).toEqual({ a: setterReturn });
+  });
+
+  it('should recursively resolve setter fns, until a non-setter value occurs', () => {
+    // arrange
+    const nested = createSetterFn(() => 4711);
+    const nested1 = createSetterFn(() => nested);
+    const nested2 = createSetterFn(() => nested1);
+    const setter = createSetterFn(() => nested2);
+    const rules: MatchRules = {
+      '*': [
+        {
+          name: 'Rule always applies',
+          when: any,
+          set: setter,
+        },
+      ],
+    };
+
+    // act
+    const args = match(defaultTestFn, rules, 42);
+
+    // assert
+    expect(args.a).toBe(4711);
   });
 });

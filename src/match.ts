@@ -1,12 +1,5 @@
-import { AnyFn, AnyObject, ArgumentSymbol, MatchRule, MatchRules, SetterFnSymbol } from './types';
-import {
-  hasSymbol,
-  isArgMatcher,
-  isPrimitive,
-  isSetterFn,
-  setSymbol,
-  toArgsDictionary,
-} from './util';
+import { AnyFn, AnyObject, ArgumentSymbol, MatchRule, MatchRules } from './types';
+import { isArgMatcher, isPrimitive, isSetterFn, setSymbol, toArgsDictionary } from './util';
 
 export const globalRuleIdentifier = '*';
 
@@ -101,10 +94,12 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
 
 function execSetterFns(currentArgs: AnyObject) {
   for (const property of Object.keys(currentArgs)) {
-    const value = currentArgs[property];
+    let value = currentArgs[property];
 
-    if (hasSymbol(SetterFnSymbol, value)) {
-      currentArgs[property] = value(currentArgs, property, currentArgs[property]);
+    while (isSetterFn(value)) {
+      value = value(currentArgs, property, currentArgs[property]);
     }
+
+    currentArgs[property] = value;
   }
 }
