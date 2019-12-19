@@ -2,7 +2,6 @@ import { AnyFn, AnyObject, ArgumentSymbol, MatchRule, MatchRules, SetterFnSymbol
 import {
   hasSymbol,
   isArgMatcher,
-  isDefined,
   isPrimitive,
   isSetterFn,
   setSymbol,
@@ -101,12 +100,6 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
 }
 
 function execSetterFns(currentArgs: AnyObject) {
-  if (!isDefined(currentArgs)) {
-    throw new Error(
-      `Argument's context object is "${currentArgs}". Did you use a custom setter function, which does not return the passed in context object?`,
-    );
-  }
-
   for (const property of Object.keys(currentArgs)) {
     const value = currentArgs[property];
 

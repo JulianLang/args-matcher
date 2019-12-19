@@ -9,5 +9,5 @@ export interface SetterFnWrapper<T extends any[]> {
 
 export interface SetterFn<T = any> {
   [SetterFnSymbol]: true;
-  (ctx: Readonly<AnyObject>, name: Readonly<string>, value: Readonly<T>): any;
+  (ctx: Readonly<AnyObject>, name: Readonly<string>, value: T): any;
 }

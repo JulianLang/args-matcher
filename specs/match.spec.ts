@@ -8,7 +8,7 @@ describe('match', () => {
     // arrange
     const testFn = (a: number | Function) => {};
 
-    const setter = createSetterFn(spy().and.returnValue({ a: 4711 }));
+    const setter = createSetterFn(spy().and.returnValue(4711));
     const normalFn = () => {};
 
     const ruleWithSetter: MatchRules = {
@@ -174,10 +174,16 @@ describe('match', () => {
     expect(matcher).toHaveBeenCalledTimes(3);
   });
 
-  it('should execute setter fns, which return a ctx object that might be manipulated', () => {
+  it('should execute setter fns, which can only manipulate the argument they operate on', () => {
     // arrange
     const setterReturn = 4711;
-    const setter = createSetterFn(spy().and.returnValue({ a: setterReturn }));
+    const setter = createSetterFn(
+      spy().and.callFake((ctx: any) => {
+        ctx.shouldNotWork = 123;
+
+        return setterReturn;
+      }),
+    );
     const rules: MatchRules = {
       '*': [
         {
@@ -192,18 +198,7 @@ describe('match', () => {
 
     // assert
     expect(setter).toHaveBeenCalledWith(jasmine.any(Object), 'a', 42);
+    expect(result.shouldNotWork).toBeUndefined();
     expect(result).toEqual({ a: setterReturn });
-  });
-
-  it('should throw if a setter function did return null or undefined as context object', () => {
-    // error, since it returns undefined.
-    const matchValue = 42;
-    const setterFn = createSetterFn(() => undefined!);
-    const rules: MatchRules = { '*': [{ when: [matchValue], set: setterFn }] };
-
-    // act, assert
-    expect(() => match(defaultTestFn, rules, matchValue)).toThrowMatching((err: Error) =>
-      err.message.includes('context'),
-    );
   });
 });
