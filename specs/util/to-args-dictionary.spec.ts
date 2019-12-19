@@ -17,6 +17,33 @@ describe('toArgsDictionary', () => {
     });
   });
 
+  it('should restore undefined arrays of rest parameters (variant 1)', () => {
+    // arrange
+    const fn = (a: string, ...b: number[]) => {};
+    const args: any[] = ['str' /* given only argument for "a", "b" is empty */];
+
+    // act
+    const obj = toArgsDictionary(fn, args);
+
+    // assert
+    expect(obj.a).toEqual('str');
+    expect(obj.b).toEqual([]);
+  });
+
+  it('should restore undefined arrays of rest parameters (variant 2)', () => {
+    // arrange
+    const fn = (...a: number[]) => {};
+    const args: any[] = [
+      /* no arguments given */
+    ];
+
+    // act
+    const obj = toArgsDictionary(fn, args);
+
+    // assert
+    expect(obj.a).toEqual([]);
+  });
+
   it('should throw for null and undefined', () => {
     // arrange, act, assert
     expect(() => toArgsDictionary(null as any, null as any)).toThrow();
