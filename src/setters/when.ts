@@ -1,11 +1,7 @@
-import { AnyObject, Func, SetterFnWrapper } from '../types';
+import { AnyObject, Func } from '../types';
 import { createSetterFn, isDefined } from '../util';
 
-export const when: SetterFnWrapper<[Func<[any?], boolean> | boolean, any, any?]> = (
-  matcher,
-  setValue,
-  elseValue?,
-) => {
+export const when = (matcher: Func<[any?], boolean> | boolean, setValue: any, elseValue?: any) => {
   return createSetterFn((ctx: Readonly<AnyObject>, name: string, value: any) => {
     if (typeof matcher === 'boolean' && matcher) {
       return setValue;
