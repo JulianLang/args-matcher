@@ -1,4 +1,5 @@
 export * from './any-fn';
+export * from './any-object';
 export * from './arg-matcher';
 export * from './func';
 export * from './match.rule';

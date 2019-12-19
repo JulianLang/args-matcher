@@ -1,12 +1,4 @@
-import {
-  ArgumentSymbol,
-  Func,
-  hasSymbol,
-  match,
-  MatchRules,
-  setSymbol,
-  SetterFnSymbol,
-} from '../src';
+import { ArgumentSymbol, createSetterFn, Func, hasSymbol, match, MatchRules } from '../src';
 import { is42Matcher, spy, spyMatcher } from './spec-helpers';
 
 describe('match', () => {
@@ -16,7 +8,7 @@ describe('match', () => {
     // arrange
     const testFn = (a: number | Function) => {};
 
-    const setter = setSymbol(SetterFnSymbol, spy().and.returnValue({ a: 4711 }));
+    const setter = createSetterFn(spy().and.returnValue({ a: 4711 }));
     const normalFn = () => {};
 
     const ruleWithSetter: MatchRules = {
@@ -49,8 +41,8 @@ describe('match', () => {
 
   it('should always call all rules for a property', () => {
     // arrange
-    const setter1 = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
-    const setter2 = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
+    const setter1 = createSetterFn(spy().and.returnValue({}));
+    const setter2 = createSetterFn(spy().and.returnValue({}));
     const rules: MatchRules = {
       a: [
         {
@@ -140,7 +132,7 @@ describe('match', () => {
 
   it('should compare constant values in match with given arg', () => {
     // arrange
-    const setterFn = setSymbol(SetterFnSymbol, spy().and.returnValue({}));
+    const setterFn = createSetterFn(spy().and.returnValue({}));
     const rules: MatchRules = {
       '*': [
         {
@@ -185,7 +177,7 @@ describe('match', () => {
   it('should execute setter fns, which return a ctx object that might be manipulated', () => {
     // arrange
     const setterReturn = 4711;
-    const setter = setSymbol(SetterFnSymbol, spy().and.returnValue({ a: setterReturn }));
+    const setter = createSetterFn(spy().and.returnValue({ a: setterReturn }));
     const rules: MatchRules = {
       '*': [
         {
@@ -206,7 +198,7 @@ describe('match', () => {
   it('should throw if a setter function did return null or undefined as context object', () => {
     // error, since it returns undefined.
     const matchValue = 42;
-    const setterFn = setSymbol(SetterFnSymbol, () => undefined);
+    const setterFn = createSetterFn(() => undefined!);
     const rules: MatchRules = { '*': [{ when: [matchValue], set: setterFn }] };
 
     // act, assert

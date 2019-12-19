@@ -1,4 +1,5 @@
 export * from './create-matcher';
+export * from './create-setter.fn';
 export * from './has-symbol';
 export * from './is-arg-matcher';
 export * from './is-defined';
