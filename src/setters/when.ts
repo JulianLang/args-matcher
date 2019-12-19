@@ -1,8 +1,8 @@
-import { Func, SetterFn, SetterFnSymbol } from '../types';
-import { setSymbol } from '../util';
+import { Func, SetterFnWrapper } from '../types';
+import { createSetterFn } from '../util';
 
-export const when: SetterFn = (matcher: Func<[any?], boolean>, setValue: any) => {
-  return setSymbol(SetterFnSymbol, (ctx: any, name: string, value: any) => {
+export const when: SetterFnWrapper = (matcher: Func<[any?], boolean>, setValue: any) => {
+  return createSetterFn((ctx: any, name: string, value: any) => {
     if (matcher(value)) {
       ctx[name] = setValue;
     }

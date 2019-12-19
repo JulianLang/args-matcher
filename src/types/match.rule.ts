@@ -1,9 +1,9 @@
 import { ArgMatcher } from './arg-matcher';
-import { SetterFn } from './setter.fn';
+import { SetterFn, SetterFnWrapper } from './setter.fn';
 
 export type MatchExpr = ArgMatcher | any;
 export interface MatchRule {
   name?: string;
   when: MatchExpr[] | MatchExpr;
-  set: SetterFn | any;
+  set: SetterFnWrapper | SetterFn | any;
 }
