@@ -1,5 +1,21 @@
-import { AnyFn, AnyObject, ArgumentSymbol, MatchRule, MatchRules } from './types';
-import { isArgMatcher, isPrimitive, isSetterFn, setSymbol, toArgsDictionary } from './util';
+import {
+  AnyFn,
+  AnyObject,
+  ArgumentSymbol,
+  MatchRule,
+  MatchRules,
+  ParentMatchRule,
+  SubMatchRule,
+} from './types';
+import {
+  isArgMatcher,
+  isDefined,
+  isPrimitive,
+  isSetterFn,
+  isSubMatchRule,
+  setSymbol,
+  toArgsDictionary,
+} from './util';
 
 export const globalRuleIdentifier = '*';
 
@@ -7,22 +23,19 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
   let originalArgs = toArgsDictionary(fn, args);
   let currentArgs = { ...originalArgs };
 
-  for (const argName of Object.keys(currentArgs)) {
-    const argValue = currentArgs[argName];
-    const matchingRules = tryMatchArg(argName, argValue, rules);
-
-    if (matchingRules.length > 0) {
-      applyRule(argName, matchingRules);
-    }
-  }
+  iterateArgs(originalArgs, rules);
 
   return cleanUpArgs(currentArgs);
 
-  function getArgRules(rules: MatchRules, argName: string): MatchRule[] {
-    const globalRules: MatchRule[] = rules[globalRuleIdentifier] ? rules[globalRuleIdentifier] : [];
-    const argRules: MatchRule[] = rules[argName] ? rules[argName] : [];
+  function iterateArgs(args: AnyObject, rules: MatchRules) {
+    for (const argName of Object.keys(args)) {
+      const argValue = args[argName];
+      const matchingRules = tryMatchArg(argName, argValue, rules);
 
-    return argRules.concat(globalRules);
+      if (matchingRules.length > 0) {
+        applyRule(argName, matchingRules);
+      }
+    }
   }
 
   function tryMatchArg(argName: string, argValue: any, rules: MatchRules): MatchRule[] {
@@ -35,14 +48,17 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
       }
 
       if (tryMatchRule(rule, argValue)) {
-        matches.push(rule);
+        const matchingSubRule = tryMatchSubRulesOf(rule, originalArgs);
+        const exactRuleMatch = isDefined(matchingSubRule) ? matchingSubRule : rule;
+
+        matches.push(exactRuleMatch);
       }
     }
 
     return matches;
   }
 
-  function tryMatchRule(rule: MatchRule, argValue: any): boolean {
+  function tryMatchRule(rule: ParentMatchRule, argValue: any): boolean {
     for (let i = 0; i < rule.when.length; i++) {
       const matchExpr = rule.when[i];
 
@@ -55,14 +71,46 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
     return false;
   }
 
-  function tryMatch(arg: any, matchExpr: any): boolean {
-    if (!isPrimitive(arg)) {
+  function tryMatchSubRulesOf(parentRule: ParentMatchRule, args: AnyObject): MatchRule | null {
+    if (!isSubMatchRule(parentRule)) {
+      // parent rule has no "and" conditions, so it fully matches by now.
+      return parentRule;
+    }
+    if (parentRule.and.length === 0) {
+      console.warn('Empty "and" block encountered. The whole rule will don`t do anything.');
+      return null;
+    }
+
+    for (const subrule of parentRule.and) {
+      if (tryMatchSubRule(subrule, args)) {
+        return subrule;
+      }
+    }
+
+    return null;
+  }
+
+  function tryMatchSubRule(rule: SubMatchRule, args: AnyObject): boolean {
+    for (const argName of Object.keys(rule.args)) {
+      const argMatcher = rule.args[argName];
+      const argValue = args[argName];
+
+      if (!tryMatch(argValue, argMatcher)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function tryMatch(argValue: any, matchExpr: any): boolean {
+    if (!isPrimitive(argValue)) {
       // to prevent confusability between fns as argument, and fns of user.
-      setSymbol(ArgumentSymbol, arg);
+      setSymbol(ArgumentSymbol, argValue);
     }
 
     const isMatcherFn = isArgMatcher(matchExpr);
-    const applies = isMatcherFn ? matchExpr(arg) : arg === matchExpr;
+    const applies = isMatcherFn ? matchExpr(argValue) : argValue === matchExpr;
 
     return applies;
   }
@@ -79,6 +127,15 @@ export function match<T extends AnyFn>(fn: Function, rules: MatchRules, ...args:
 
       execSetterFns(currentArgs);
     }
+  }
+
+  function getArgRules(rules: MatchRules, argName: string): ParentMatchRule[] {
+    const globalRules: ParentMatchRule[] = rules[globalRuleIdentifier]
+      ? rules[globalRuleIdentifier]
+      : [];
+    const argRules: ParentMatchRule[] = rules[argName] ? rules[argName] : [];
+
+    return argRules.concat(globalRules);
   }
 
   function cleanUpArgs(argsObj: AnyObject): AnyObject {

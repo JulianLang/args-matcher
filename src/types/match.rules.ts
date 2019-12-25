@@ -1,5 +1,5 @@
-import { MatchRule } from './match.rule';
+import { ParentMatchRule } from './match.rule';
 
 export interface MatchRules {
-  [propertyName: string]: MatchRule[];
+  [propertyName: string]: ParentMatchRule[];
 }
