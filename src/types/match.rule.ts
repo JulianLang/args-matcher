@@ -1,9 +1,28 @@
+import { AnyObject } from './any-object';
 import { ArgMatcher } from './arg-matcher';
 import { SetterFn, SetterFnWrapper } from './setter.fn';
 
 export type MatchExpr = ArgMatcher | any;
-export interface MatchRule {
+
+export type MatchRule = ParentMatchRule | SubMatchRule;
+export type ParentMatchRule = SetMatchRule | AndMatchRule;
+
+interface MatchRuleBase {
   name?: string;
   when: MatchExpr[] | MatchExpr;
-  set: SetterFnWrapper | SetterFn | any;
+}
+
+export interface SetMatchRule extends MatchRuleBase {
+  set: SetterFnWrapper<any[]> | SetterFn | any;
+  and?: never;
+}
+
+export interface AndMatchRule extends MatchRuleBase {
+  and: SubMatchRule[];
+  set?: never;
+}
+
+export interface SubMatchRule {
+  args: AnyObject<MatchExpr[] | MatchExpr>;
+  set: SetterFnWrapper<any[]> | SetterFn | any;
 }

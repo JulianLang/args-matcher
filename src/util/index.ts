@@ -5,6 +5,7 @@ export * from './is-arg-matcher';
 export * from './is-defined';
 export * from './is-primitive';
 export * from './is-setter.fn';
+export * from './is-sub-match-rule';
 export * from './sanitize-param-name';
 export * from './set-symbol';
 export * from './to-args-dictionary';

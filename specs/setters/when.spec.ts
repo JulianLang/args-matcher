@@ -13,9 +13,10 @@ describe('when', () => {
     // arrange, act
     const succeed = when(() => true, 42);
     const dontSucceed = when(() => false, 42);
+    const initialValue = null;
 
     // assert
-    expect(succeed({}, 'prop', null)).toEqual({ prop: 42 });
-    expect(dontSucceed({}, 'prop', null)).toEqual({});
+    expect(succeed({}, 'prop', initialValue)).toEqual(42);
+    expect(dontSucceed({}, 'prop', initialValue)).toEqual(initialValue);
   });
 });
